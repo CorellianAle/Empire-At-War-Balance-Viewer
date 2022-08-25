@@ -1,0 +1,409 @@
+﻿<Window x:Class="Balancer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:cht="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=DotNetProjects.DataVisualization.Toolkit" 
+        xmlns:oxy="http://oxyplot.org/wpf"
+        xmlns:local="clr-namespace:Balancer"
+        mc:Ignorable="d"
+        Title="Empire at War Balance Viewer"
+        Height="450" Width="800"
+        Loaded="Window_Loaded">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Menu -->
+        <Menu Grid.Row="0" VerticalAlignment="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Select Files" Click="MenuItem_Click_SelectFiles"/>
+                <MenuItem Header="Refresh Files" Click="MenuItem_Click_RefreshFiles"/>
+                <Separator />
+                <MenuItem Header="Close" Click="MenuItem_Click_Close"/>
+            </MenuItem>
+            <MenuItem Header="View">
+                <MenuItem Header="Toggle Files List Display" Click="MenuItem_Click_ToggleFilesListViewDisplay"/>
+            </MenuItem>
+            <MenuItem Header="Options">
+                <MenuItem Header="Options" Click="MenuItem_Click_ShowOptions"/>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="Show Documentation"/>
+                <Separator />
+                <MenuItem Header="About" Click="MenuItem_Click_About"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- -->
+        <Grid Grid.Row="1" Margin="5">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Visibility="{Binding Path=ShowFiles, Converter={StaticResource BoolToVis}}"  Margin="0, 0, 0, 5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="Selected XML Files:"/>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding GameObjectFiles}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding FileName}"/>
+                        <DataGridTextColumn Header="Units" Binding="{Binding UnitsCount}"/>
+                        <DataGridTextColumn Header="Excluded Units" Binding="{Binding ExcludedUnitsCount}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+
+            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
+
+            <TabControl Grid.Row="2" Margin="0, 5, 0, 0">
+                <TabItem Header="All Units">
+                    <DataGrid ItemsSource="{Binding Units}" 
+                              SelectedItem="{Binding Path=SelectedUnit, Mode=TwoWay}" 
+                              AutoGenerateColumns="False" IsReadOnly="True" 
+                              Margin="5">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridCell" x:Key="AI_Combat_Power_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding AI_Combat_Power_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                            
+                            <Style TargetType="DataGridCell" x:Key="Damage_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Damage_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Autoresolve_Health_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Autoresolve_Health_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Shield_Points_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Shield_Points_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Tactical_Health_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Tactical_Health_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Shield_Refresh_Rate_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Shield_Refresh_Rate_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Energy_Capacity_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Energy_Capacity_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Energy_Refresh_Rate_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Energy_Refresh_Rate_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Build_Cost_Credits_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Build_Cost_Credits_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Piracy_Value_Credits_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Piracy_Value_Credits_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Build_Time_Seconds_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Build_Time_Seconds_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Space_FOW_Reveal_Range_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Space_FOW_Reveal_Range_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Targeting_Max_Attack_Distance_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Targeting_Max_Attack_Distance_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Score_Cost_Credits_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Score_Cost_Credits_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Tactical_Build_Cost_Multiplayer_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Tactical_Build_Cost_Multiplayer_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style TargetType="DataGridCell" x:Key="Tactical_Build_Time_Seconds_CellStyle">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Tactical_Build_Time_Seconds_fromParent}" Value="True">
+                                        <Setter Property="Background" Value="LightGray" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+
+                            <DataGridTextColumn Header="Parent" Binding="{Binding Variant_Of_Existing_Type}"/>
+
+                            <DataGridTextColumn Header="AI Combat Power" Binding="{Binding AI_Combat_Power}" CellStyle="{StaticResource AI_Combat_Power_CellStyle}"/>
+                            <DataGridTextColumn Header="Damage" Binding="{Binding Damage}" CellStyle="{StaticResource Damage_CellStyle}"/>
+                            <DataGridTextColumn Header="Autoresolve Health" Binding="{Binding Autoresolve_Health}" CellStyle="{StaticResource Autoresolve_Health_CellStyle}"/>
+                            <DataGridTextColumn Header="Shield Points" Binding="{Binding Shield_Points}" CellStyle="{StaticResource Shield_Points_CellStyle}"/>
+                            <DataGridTextColumn Header="Tactical Health" Binding="{Binding Tactical_Health}" CellStyle="{StaticResource Tactical_Health_CellStyle}"/>
+                            <DataGridTextColumn Header="Shield Refresh Rate" Binding="{Binding Shield_Refresh_Rate}" CellStyle="{StaticResource Shield_Refresh_Rate_CellStyle}"/>
+                            <DataGridTextColumn Header="Energy Capacity" Binding="{Binding Energy_Capacity}" CellStyle="{StaticResource Energy_Capacity_CellStyle}"/>
+                            <DataGridTextColumn Header="Energy Refresh Rate" Binding="{Binding Energy_Refresh_Rate}" CellStyle="{StaticResource Energy_Refresh_Rate_CellStyle}"/>
+
+                            <DataGridTextColumn Header="Build Cost Credits" Binding="{Binding Build_Cost_Credits}" CellStyle="{StaticResource Build_Cost_Credits_CellStyle}"/>
+                            <DataGridTextColumn Header="Piracy Value Credits" Binding="{Binding Piracy_Value_Credits}" CellStyle="{StaticResource Piracy_Value_Credits_CellStyle}"/>
+                            <DataGridTextColumn Header="Build Time Seconds" Binding="{Binding Build_Time_Seconds}" CellStyle="{StaticResource Build_Time_Seconds_CellStyle}"/>
+
+                            <DataGridTextColumn Header="Space FOW Reveal Range" Binding="{Binding Space_FOW_Reveal_Range}" CellStyle="{StaticResource Space_FOW_Reveal_Range_CellStyle}"/>
+                            <DataGridTextColumn Header="Targeting Max Attack Distance" Binding="{Binding Targeting_Max_Attack_Distance}" CellStyle="{StaticResource Targeting_Max_Attack_Distance_CellStyle}"/>
+
+                            <DataGridTextColumn Header="Score Cost Credits" Binding="{Binding Score_Cost_Credits}" CellStyle="{StaticResource Score_Cost_Credits_CellStyle}"/>
+
+                            <DataGridTextColumn Header="Tactical Build Cost Multiplayer" Binding="{Binding Tactical_Build_Cost_Multiplayer}" CellStyle="{StaticResource Tactical_Build_Cost_Multiplayer_CellStyle}"/>
+                            <DataGridTextColumn Header="Tactical Build Time Seconds" Binding="{Binding Tactical_Build_Time_Seconds}" CellStyle="{StaticResource Tactical_Build_Time_Seconds_CellStyle}"/>
+                        </DataGrid.Columns>
+
+
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Open File in Editor 1" Click="DataGrid_MenuItem_Click_OpenFileEditorOne" />
+                                <MenuItem Header="Open File in Editor 2" Click="DataGrid_MenuItem_Click_OpenFileEditorTwo" />
+                                <MenuItem Header="Open File in Explorer" Click="DataGrid_MenuItem_Click_OpenFileInExplorer" />
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+                    </DataGrid>
+                </TabItem>
+                <TabItem Header="Charts">
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0" Margin="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Column="0" Content="Select Chart Type:"/>
+                            <ListView Grid.Column="1" Margin="0, 5, 0, 0"
+                                      MinWidth="100" 
+                                      ItemsSource="{Binding ChartTypes}" SelectedItem="{Binding Path=SelectedChartType, Mode=TwoWay}"/>
+
+                            <Button Grid.Row="2" Margin="0, 5, 0, 0"
+                                    Content="Refresh Chart" Click="Button_Click_RefreshChart"/>
+                        </Grid>
+
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Label Grid.Row="0" Content="{Binding SelectedChartType}" FontSize="15"/>
+
+                            <StackPanel Grid.Row="1" Margin="0, 5, 0, 0" 
+                                        Orientation="Horizontal">
+                                <Label Content="Amount:"/>
+                                <Label Content="{Binding ChartItemsAmount}" Margin="5, 0, 0, 0"/>
+                            </StackPanel>
+
+                            <ScrollViewer Grid.Row="2" Margin="0, 20, 0, 0" 
+                                          HorizontalScrollBarVisibility="Disabled">
+                                <Grid Name="ChartGrid">
+                                    <Grid.ColumnDefinitions>
+                                        <!-- Name -->
+                                        <ColumnDefinition MinWidth="200"/>
+
+                                        <!-- Chart Length - 100 columns -->
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+
+                                        <!-- Value + Percentage -->
+                                        <ColumnDefinition MinWidth="100"/>
+                                    </Grid.ColumnDefinitions>
+                                </Grid>
+                            </ScrollViewer>
+                        </Grid>
+                        
+
+
+
+                    </Grid>
+                </TabItem>
+            </TabControl>
+            
+        </Grid>
+    </Grid>
+</Window>
