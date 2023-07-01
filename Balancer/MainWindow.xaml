@@ -3,15 +3,25 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:cht="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=DotNetProjects.DataVisualization.Toolkit" 
-        xmlns:oxy="http://oxyplot.org/wpf"
         xmlns:local="clr-namespace:Balancer"
+        xmlns:uc="clr-namespace:Balancer.UserControls"
         mc:Ignorable="d"
         Title="Empire at War Balance Viewer"
         Height="450" Width="800"
         Loaded="Window_Loaded">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <local:StringListToStringConverter x:Key="StrListToStr" />
+        <local:BooleanToYesNoConverter x:Key="BoolToYN" />
+
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Padding" Value="5" />
+        </Style>
+
+        <Style TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding" Value="10, 5, 10, 5" />
+        </Style>
     </Window.Resources>
     
     <Grid>
@@ -23,20 +33,21 @@
         <!-- Menu -->
         <Menu Grid.Row="0" VerticalAlignment="Top">
             <MenuItem Header="File">
-                <MenuItem Header="Select Files" Click="MenuItem_Click_SelectFiles"/>
+                <MenuItem Header="Open Files" Click="MenuItem_Click_OpenFiles"/>
+                <Separator/>
                 <MenuItem Header="Refresh Files" Click="MenuItem_Click_RefreshFiles"/>
-                <Separator />
+                <Separator/>
                 <MenuItem Header="Close" Click="MenuItem_Click_Close"/>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Toggle Files List Display" Click="MenuItem_Click_ToggleFilesListViewDisplay"/>
             </MenuItem>
-            <MenuItem Header="Options">
-                <MenuItem Header="Options" Click="MenuItem_Click_ShowOptions"/>
+            <MenuItem Header="Settings">
+                <MenuItem Header="Settings" Click="MenuItem_Click_ShowSettings"/>
             </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem Header="Show Documentation"/>
-                <Separator />
+                <Separator/>
                 <MenuItem Header="About" Click="MenuItem_Click_About"/>
             </MenuItem>
         </Menu>
@@ -50,357 +61,556 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Visibility="{Binding Path=ShowFiles, Converter={StaticResource BoolToVis}}"  Margin="0, 0, 0, 5">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+            <!-- XML Files -->
+            <TabControl Grid.Row="0" Margin="0, 0, 0, 10">
+                <TabItem Header="Units XML Files" MinWidth="175" MinHeight="26">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
-                <Label Grid.Row="0" Content="Selected XML Files:"/>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Button Content="Add File" Click="Button_Click_AddUnitXmlFile" MinWidth="150"/>
+                            <Button Content="Delete File" Click="Button_Click_RemoveUnitXmlFile" Margin="10, 0, 0, 0" MinWidth="150"/>
+                        </StackPanel>
 
-                <DataGrid Grid.Row="1" ItemsSource="{Binding GameObjectFiles}" AutoGenerateColumns="False" IsReadOnly="True">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Name" Binding="{Binding FileName}"/>
-                        <DataGridTextColumn Header="Units" Binding="{Binding UnitsCount}"/>
-                        <DataGridTextColumn Header="Excluded Units" Binding="{Binding ExcludedUnitsCount}"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
+                        <DataGrid Grid.Row="1" Name="UnitsXmlFiles"
+                                  ItemsSource="{Binding UnitFiles}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26" 
+                                  Margin="0, 10, 0, 0">
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Binding="{Binding FileName}"/>
+                                <DataGridTextColumn Header="Units" Binding="{Binding UnitsCount}"/>
+                                <DataGridTextColumn Header="Excluded Units" Binding="{Binding ExcludedUnitsCount}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Hardpoints XML Files" MinWidth="175" MinHeight="26">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Button Content="Add File" Click="Button_Click_AddHardpointXmlFile" MinWidth="150"/>
+                            <Button Content="Delete File" Click="Button_Click_RemoveHardpointXmlFile" Margin="10, 0, 0, 0" MinWidth="150"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" Name="HardpointsXmlFiles" 
+                                  ItemsSource="{Binding HardpointFiles}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26" 
+                                  Margin="0, 10, 0, 0">
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Binding="{Binding FileName}"/>
+                                <DataGridTextColumn Header="Hardpoints" Binding="{Binding HardpointsCount}"/>
+                                <DataGridTextColumn Header="Excluded Hardpoints" Binding="{Binding ExcludedHardpointsCount}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Projectiles XML Files" MinWidth="175" MinHeight="26">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Button Content="Add File" Click="Button_Click_AddProjectileXmlFile" MinWidth="150"/>
+                            <Button Content="Delete File" Click="Button_Click_RemoveProjectileXmlFile" Margin="10, 0, 0, 0" MinWidth="150"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" Name="ProjectilesXmlFiles" 
+                                  ItemsSource="{Binding ProjectileFiles}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26" 
+                                  Margin="0, 10, 0, 0">
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Binding="{Binding FileName}"/>
+                                <DataGridTextColumn Header="Projectiles" Binding="{Binding ProjectilesCount}"/>
+                                <DataGridTextColumn Header="Excluded Projectiles" Binding="{Binding ExcludedProjectilesCount}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Previously Selected XML Files" MinWidth="175" MinHeight="26">
+                </TabItem>
+            </TabControl>
 
             <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
 
-            <TabControl Grid.Row="2" Margin="0, 5, 0, 0">
-                <TabItem Header="All Units">
-                    <DataGrid ItemsSource="{Binding Units}" 
-                              SelectedItem="{Binding Path=SelectedUnit, Mode=TwoWay}" 
-                              AutoGenerateColumns="False" IsReadOnly="True" 
-                              Margin="5">
-                        <DataGrid.Resources>
-                            <Style TargetType="DataGridCell" x:Key="AI_Combat_Power_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding AI_Combat_Power_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+            <!-- Units -->
+            <TabControl Grid.Row="2" Name="TabControl" Margin="0, 10, 0, 0">
+                <TabItem Name="TabItem_AllUnits" Header="All Units" MinWidth="175" MinHeight="26">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Button Content="Compare Selected Units" Click="Button_Click_CompareSelectedUnits" MinWidth="150"/>
+                            <Button Content="Reset Selection" Click="Button_Click_ResetSelectedUnits" Margin="10, 0, 0, 0" MinWidth="150"/>
+                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="10, 0, 0, 0"/>
+                            <Button Content="Delete Unit" Click="Button_Click_RemoveUnits" Margin="10, 0, 0, 0" MinWidth="150"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" Name="AllUnitsDataGrid"
+                                  ItemsSource="{Binding Units}" 
+                                  SelectedItem="{Binding Path=SelectedUnit, Mode=TwoWay}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26"
+                                  Margin="0, 10, 0, 0">
                             
-                            <Style TargetType="DataGridCell" x:Key="Damage_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Damage_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                            <DataGrid.Resources>
+                                <ContextMenu x:Key="AllUnitsDataGrid_rowContextMenu">
+                                    <MenuItem Header="Open File in Editor 1" Click="DataGrid_MenuItem_Click_OpenFileEditorOne" />
+                                    <MenuItem Header="Open File in Editor 2" Click="DataGrid_MenuItem_Click_OpenFileEditorTwo" />
+                                    <Separator/>
+                                    <MenuItem Header="Open File in Explorer" Click="DataGrid_MenuItem_Click_OpenFileInExplorer" />
+                                    <Separator/>
+                                    <MenuItem Header="Remove Unit" Click="DataGrid_MenuItem_Click_RemoveUnit" />
+                                </ContextMenu>
 
-                            <Style TargetType="DataGridCell" x:Key="Autoresolve_Health_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Autoresolve_Health_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="AI_Combat_Power_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding AI_Combat_Power_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Shield_Points_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Shield_Points_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Damage_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Damage_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Tactical_Health_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tactical_Health_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Autoresolve_Health_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Autoresolve_Health_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Shield_Refresh_Rate_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Shield_Refresh_Rate_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Shield_Points_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Shield_Points_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Energy_Capacity_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Energy_Capacity_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Tactical_Health_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Tactical_Health_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Energy_Refresh_Rate_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Energy_Refresh_Rate_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Shield_Refresh_Rate_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Shield_Refresh_Rate_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Build_Cost_Credits_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Build_Cost_Credits_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Energy_Capacity_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Energy_Capacity_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Piracy_Value_Credits_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Piracy_Value_Credits_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Energy_Refresh_Rate_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Energy_Refresh_Rate_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Build_Time_Seconds_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Build_Time_Seconds_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Build_Cost_Credits_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Build_Cost_Credits_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Space_FOW_Reveal_Range_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Space_FOW_Reveal_Range_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Piracy_Value_Credits_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Piracy_Value_Credits_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Targeting_Max_Attack_Distance_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Targeting_Max_Attack_Distance_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Build_Time_Seconds_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Build_Time_Seconds_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Score_Cost_Credits_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Score_Cost_Credits_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Space_FOW_Reveal_Range_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Space_FOW_Reveal_Range_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Tactical_Build_Cost_Multiplayer_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tactical_Build_Cost_Multiplayer_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
+                                <Style TargetType="DataGridCell" x:Key="Targeting_Max_Attack_Distance_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Targeting_Max_Attack_Distance_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <Style TargetType="DataGridCell" x:Key="Tactical_Build_Time_Seconds_CellStyle">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Tactical_Build_Time_Seconds_fromParent}" Value="True">
-                                        <Setter Property="Background" Value="LightGray" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.Resources>
+                                <Style TargetType="DataGridCell" x:Key="Score_Cost_Credits_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Score_Cost_Credits_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
+                                <Style TargetType="DataGridCell" x:Key="Tactical_Build_Cost_Multiplayer_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Tactical_Build_Cost_Multiplayer_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                                <Style TargetType="DataGridCell" x:Key="Tactical_Build_Time_Seconds_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Tactical_Build_Time_Seconds_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
 
-                            <DataGridTextColumn Header="Parent" Binding="{Binding Variant_Of_Existing_Type}"/>
-
-                            <DataGridTextColumn Header="AI Combat Power" Binding="{Binding AI_Combat_Power}" CellStyle="{StaticResource AI_Combat_Power_CellStyle}"/>
-                            <DataGridTextColumn Header="Damage" Binding="{Binding Damage}" CellStyle="{StaticResource Damage_CellStyle}"/>
-                            <DataGridTextColumn Header="Autoresolve Health" Binding="{Binding Autoresolve_Health}" CellStyle="{StaticResource Autoresolve_Health_CellStyle}"/>
-                            <DataGridTextColumn Header="Shield Points" Binding="{Binding Shield_Points}" CellStyle="{StaticResource Shield_Points_CellStyle}"/>
-                            <DataGridTextColumn Header="Tactical Health" Binding="{Binding Tactical_Health}" CellStyle="{StaticResource Tactical_Health_CellStyle}"/>
-                            <DataGridTextColumn Header="Shield Refresh Rate" Binding="{Binding Shield_Refresh_Rate}" CellStyle="{StaticResource Shield_Refresh_Rate_CellStyle}"/>
-                            <DataGridTextColumn Header="Energy Capacity" Binding="{Binding Energy_Capacity}" CellStyle="{StaticResource Energy_Capacity_CellStyle}"/>
-                            <DataGridTextColumn Header="Energy Refresh Rate" Binding="{Binding Energy_Refresh_Rate}" CellStyle="{StaticResource Energy_Refresh_Rate_CellStyle}"/>
-
-                            <DataGridTextColumn Header="Build Cost Credits" Binding="{Binding Build_Cost_Credits}" CellStyle="{StaticResource Build_Cost_Credits_CellStyle}"/>
-                            <DataGridTextColumn Header="Piracy Value Credits" Binding="{Binding Piracy_Value_Credits}" CellStyle="{StaticResource Piracy_Value_Credits_CellStyle}"/>
-                            <DataGridTextColumn Header="Build Time Seconds" Binding="{Binding Build_Time_Seconds}" CellStyle="{StaticResource Build_Time_Seconds_CellStyle}"/>
-
-                            <DataGridTextColumn Header="Space FOW Reveal Range" Binding="{Binding Space_FOW_Reveal_Range}" CellStyle="{StaticResource Space_FOW_Reveal_Range_CellStyle}"/>
-                            <DataGridTextColumn Header="Targeting Max Attack Distance" Binding="{Binding Targeting_Max_Attack_Distance}" CellStyle="{StaticResource Targeting_Max_Attack_Distance_CellStyle}"/>
-
-                            <DataGridTextColumn Header="Score Cost Credits" Binding="{Binding Score_Cost_Credits}" CellStyle="{StaticResource Score_Cost_Credits_CellStyle}"/>
-
-                            <DataGridTextColumn Header="Tactical Build Cost Multiplayer" Binding="{Binding Tactical_Build_Cost_Multiplayer}" CellStyle="{StaticResource Tactical_Build_Cost_Multiplayer_CellStyle}"/>
-                            <DataGridTextColumn Header="Tactical Build Time Seconds" Binding="{Binding Tactical_Build_Time_Seconds}" CellStyle="{StaticResource Tactical_Build_Time_Seconds_CellStyle}"/>
-                        </DataGrid.Columns>
+                                <Style TargetType="DataGridCell" x:Key="Hardpoints_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Hardpoints_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.Resources>
 
 
-                        <DataGrid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Open File in Editor 1" Click="DataGrid_MenuItem_Click_OpenFileEditorOne" />
-                                <MenuItem Header="Open File in Editor 2" Click="DataGrid_MenuItem_Click_OpenFileEditorTwo" />
-                                <MenuItem Header="Open File in Explorer" Click="DataGrid_MenuItem_Click_OpenFileInExplorer" />
-                            </ContextMenu>
-                        </DataGrid.ContextMenu>
-                    </DataGrid>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+
+                                <DataGridTextColumn Header="Parent" Binding="{Binding Variant_Of_Existing_Type}"/>
+
+                                <DataGridTextColumn Header="AI Combat Power" Binding="{Binding AI_Combat_Power}" CellStyle="{StaticResource AI_Combat_Power_CellStyle}"/>
+                                <DataGridTextColumn Header="Damage" Binding="{Binding Damage}" CellStyle="{StaticResource Damage_CellStyle}"/>
+                                <DataGridTextColumn Header="Autoresolve Health" Binding="{Binding Autoresolve_Health}" CellStyle="{StaticResource Autoresolve_Health_CellStyle}"/>
+                                <DataGridTextColumn Header="Shield Points" Binding="{Binding Shield_Points}" CellStyle="{StaticResource Shield_Points_CellStyle}"/>
+                                <DataGridTextColumn Header="Tactical Health" Binding="{Binding Tactical_Health}" CellStyle="{StaticResource Tactical_Health_CellStyle}"/>
+                                <DataGridTextColumn Header="Shield Refresh Rate" Binding="{Binding Shield_Refresh_Rate}" CellStyle="{StaticResource Shield_Refresh_Rate_CellStyle}"/>
+                                <DataGridTextColumn Header="Energy Capacity" Binding="{Binding Energy_Capacity}" CellStyle="{StaticResource Energy_Capacity_CellStyle}"/>
+                                <DataGridTextColumn Header="Energy Refresh Rate" Binding="{Binding Energy_Refresh_Rate}" CellStyle="{StaticResource Energy_Refresh_Rate_CellStyle}"/>
+
+                                <DataGridTextColumn Header="Build Cost Credits" Binding="{Binding Build_Cost_Credits}" CellStyle="{StaticResource Build_Cost_Credits_CellStyle}"/>
+                                <DataGridTextColumn Header="Piracy Value Credits" Binding="{Binding Piracy_Value_Credits}" CellStyle="{StaticResource Piracy_Value_Credits_CellStyle}"/>
+                                <DataGridTextColumn Header="Build Time Seconds" Binding="{Binding Build_Time_Seconds}" CellStyle="{StaticResource Build_Time_Seconds_CellStyle}"/>
+
+                                <DataGridTextColumn Header="Space FOW Reveal Range" Binding="{Binding Space_FOW_Reveal_Range}" CellStyle="{StaticResource Space_FOW_Reveal_Range_CellStyle}"/>
+                                <DataGridTextColumn Header="Targeting Max Attack Distance" Binding="{Binding Targeting_Max_Attack_Distance}" CellStyle="{StaticResource Targeting_Max_Attack_Distance_CellStyle}"/>
+
+                                <DataGridTextColumn Header="Score Cost Credits" Binding="{Binding Score_Cost_Credits}" CellStyle="{StaticResource Score_Cost_Credits_CellStyle}"/>
+
+                                <DataGridTextColumn Header="Tactical Build Cost Multiplayer" Binding="{Binding Tactical_Build_Cost_Multiplayer}" CellStyle="{StaticResource Tactical_Build_Cost_Multiplayer_CellStyle}"/>
+                                <DataGridTextColumn Header="Tactical Build Time Seconds" Binding="{Binding Tactical_Build_Time_Seconds}" CellStyle="{StaticResource Tactical_Build_Time_Seconds_CellStyle}"/>
+
+                                <DataGridTextColumn Header="Hardpoints" Binding="{Binding Path=HardpointNames.Count}" CellStyle="{StaticResource Hardpoints_CellStyle}"/>
+                                
+                            </DataGrid.Columns>
+
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                    <Setter Property="ContextMenu" Value="{StaticResource AllUnitsDataGrid_rowContextMenu}" />
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                    </Grid>
                 </TabItem>
-                <TabItem Header="Charts">
-                    <Grid Margin="5">
+
+                <TabItem Name="TabItem_AllHardpoints" Header="All Hardpoints" MinWidth="175" MinHeight="26">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Button Content="Compare Selected Hardpoints" Click="Button_Click_CompareSelectedHardpoints" MinWidth="150"/>
+                            <Button Content="Reset Selection" Click="Button_Click_ResetSelectedHardpoints" Margin="10, 0, 0, 0" MinWidth="150"/>
+                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="10, 0, 0, 0"/>
+                            <Button Content="Delete Hardpoint" Click="Button_Click_RemoveHardpoints" Margin="10, 0, 0, 0" MinWidth="150"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" Name="AllHardpointsDataGrid"
+                                  ItemsSource="{Binding Hardpoints}" 
+                                  SelectedItem="{Binding Path=SelectedHardpoint, Mode=TwoWay}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26"
+                                  Margin="0, 10, 0, 0">
+
+                            <DataGrid.Resources>
+                                <ContextMenu x:Key="AllHardpointsDataGrid_rowContextMenu">
+                                    <MenuItem Header="Open File in Editor 1" Click="DataGrid_MenuItem_Click_OpenFileEditorOne" />
+                                    <MenuItem Header="Open File in Editor 2" Click="DataGrid_MenuItem_Click_OpenFileEditorTwo" />
+                                    <Separator/>
+                                    <MenuItem Header="Open File in Explorer" Click="DataGrid_MenuItem_Click_OpenFileInExplorer" />
+                                    <Separator/>
+                                    <MenuItem Header="Remove Unit" Click="DataGrid_MenuItem_Click_RemoveUnit" />
+                                </ContextMenu>
+                            </DataGrid.Resources>
+
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                                <DataGridTextColumn Header="Type" Binding="{Binding Type}"/>
+                                <DataGridTextColumn Header="Is Targetable" Binding="{Binding Is_Targetable, Converter={StaticResource BoolToYN}}"/>
+                                <DataGridTextColumn Header="Is Destroyable" Binding="{Binding Is_Destroyable, Converter={StaticResource BoolToYN}}"/>
+                                <DataGridTextColumn Header="Health" Binding="{Binding Health}"/>
+
+                                <DataGridTextColumn Header="Damage Type" Binding="{Binding Damage_Type}"/>
+
+                                <DataGridTextColumn Header="Projectile" Binding="{Binding ProjectileName}"/>
+
+                                <DataGridTextColumn Header="Min Recharge Seconds" Binding="{Binding Fire_Min_Recharge_Seconds}"/>
+                                <DataGridTextColumn Header="Max Recharge Seconds" Binding="{Binding Fire_Max_Recharge_Seconds}"/>
+                                <DataGridTextColumn Header="Pulse Count" Binding="{Binding Fire_Pulse_Count}"/>
+                                <DataGridTextColumn Header="Pulse Delay Seconds" Binding="{Binding Fire_Pulse_Delay_Seconds}"/>
+                                <DataGridTextColumn Header="Range Distance" Binding="{Binding Fire_Range_Distance}"/>
+
+                                <DataGridTextColumn Header="Units" Binding="{Binding Path=Units.Count}"/>
+
+                            </DataGrid.Columns>
+
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Open File in Editor 1" Click="DataGrid_MenuItem_Click_OpenHardpointFileEditorOne" />
+                                    <MenuItem Header="Open File in Editor 2" Click="DataGrid_MenuItem_Click_OpenHardpointFileEditorTwo" />
+                                    <Separator/>
+                                    <MenuItem Header="Open File in Explorer" Click="DataGrid_MenuItem_Click_OpenHardpointFileInExplorer" />
+                                    <Separator/>
+                                    <MenuItem Header="Remove Hardpoint" Click="DataGrid_MenuItem_Click_RemoveHardpoint" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                    <Setter Property="ContextMenu" Value="{StaticResource AllHardpointsDataGrid_rowContextMenu}" />
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Name="TabItem_AllProjectiles" Header="All Projectiles" MinWidth="175" MinHeight="26">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Button Content="Compare Selected Projectiles" Click="Button_Click_CompareSelectedProjectiles" MinWidth="150"/>
+                            <Button Content="Reset Selection" Click="Button_Click_ResetSelectedProjectiles" Margin="10, 0, 0, 0" MinWidth="150"/>
+                            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="10, 0, 0, 0"/>
+                            <Button Content="Delete Projectile" Click="Button_Click_RemoveProjectiles" Margin="10, 0, 0, 0" MinWidth="150"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1" Name="AllProjectilesDataGrid"
+                                  ItemsSource="{Binding Projectiles}" 
+                                  SelectedItem="{Binding Path=SelectedProjectile, Mode=TwoWay}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26"
+                                  Margin="0, 10, 0, 0">
+
+                            <DataGrid.Resources>
+                                <ContextMenu x:Key="AllProjectilesDataGrid_rowContextMenu">
+                                    <MenuItem Header="Open File in Editor 1" Click="DataGrid_MenuItem_Click_OpenFileEditorOne" />
+                                    <MenuItem Header="Open File in Editor 2" Click="DataGrid_MenuItem_Click_OpenFileEditorTwo" />
+                                    <Separator/>
+                                    <MenuItem Header="Open File in Explorer" Click="DataGrid_MenuItem_Click_OpenFileInExplorer" />
+                                    <Separator/>
+                                    <MenuItem Header="Remove Unit" Click="DataGrid_MenuItem_Click_RemoveUnit" />
+                                </ContextMenu>
+                                
+                                <Style TargetType="DataGridCell" x:Key="Projectile_Damage_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Projectile_Damage_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                                <Style TargetType="DataGridCell" x:Key="Projectile_Does_Shield_Damage_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Projectile_Does_Shield_Damage_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                                <Style TargetType="DataGridCell" x:Key="Projectile_Does_Energy_Damage_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Projectile_Does_Energy_Damage_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                                <Style TargetType="DataGridCell" x:Key="Projectile_Does_Hitpoint_Damage_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Projectile_Does_Hitpoint_Damage_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                                <Style TargetType="DataGridCell" x:Key="Projectile_Blast_Area_Damage_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Projectile_Blast_Area_Damage_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                                <Style TargetType="DataGridCell" x:Key="Projectile_Blast_Area_Range_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Projectile_Blast_Area_Range_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                                <Style TargetType="DataGridCell" x:Key="AI_Combat_Power_CellStyle">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding AI_Combat_Power_fromParent}" Value="True">
+                                            <Setter Property="Background" Value="LightGray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.Resources>
+
+                            <DataGrid.Columns>
+                                
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                                <DataGridTextColumn Header="Parent" Binding="{Binding Variant_Of_Existing_Type}"/>
+                                <DataGridTextColumn Header="Projectile Damage" Binding="{Binding Projectile_Damage}" CellStyle="{StaticResource Projectile_Damage_CellStyle}"/>
+                                <DataGridTextColumn Header="Shield Damage" Binding="{Binding Projectile_Does_Shield_Damage, Converter={StaticResource BoolToYN}}" CellStyle="{StaticResource Projectile_Does_Shield_Damage_CellStyle}"/>
+                                <DataGridTextColumn Header="Energy Damage" Binding="{Binding Projectile_Does_Energy_Damage, Converter={StaticResource BoolToYN}}" CellStyle="{StaticResource Projectile_Does_Energy_Damage_CellStyle}"/>
+                                <DataGridTextColumn Header="Hitpoint Damage" Binding="{Binding Projectile_Does_Hitpoint_Damage, Converter={StaticResource BoolToYN}}" CellStyle="{StaticResource Projectile_Does_Hitpoint_Damage_CellStyle}"/>
+                                <DataGridTextColumn Header="Blast Area Damage" Binding="{Binding Projectile_Blast_Area_Damage}" CellStyle="{StaticResource Projectile_Blast_Area_Damage_CellStyle}"/>
+                                <DataGridTextColumn Header="Blast Area Range" Binding="{Binding Projectile_Blast_Area_Range}" CellStyle="{StaticResource Projectile_Blast_Area_Range_CellStyle}"/>
+
+                                <DataGridTextColumn Header="AI Combat Power" Binding="{Binding AI_Combat_Power}" CellStyle="{StaticResource AI_Combat_Power_CellStyle}"/>
+
+                                <DataGridTextColumn Header="Units" Binding="{Binding Path=Units.Count}"/>
+                                <DataGridTextColumn Header="Hardpoints" Binding="{Binding Path=Hardpoints.Count}"/>
+
+                            </DataGrid.Columns>
+
+                            
+
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Open File in Editor 1" Click="DataGrid_MenuItem_Click_OpenHardpointFileEditorOne" />
+                                    <MenuItem Header="Open File in Editor 2" Click="DataGrid_MenuItem_Click_OpenHardpointFileEditorTwo" />
+                                    <Separator/>
+                                    <MenuItem Header="Open File in Explorer" Click="DataGrid_MenuItem_Click_OpenHardpointFileInExplorer" />
+                                    <Separator/>
+                                    <MenuItem Header="Remove Hardpoint" Click="DataGrid_MenuItem_Click_RemoveHardpoint" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                                    <Setter Property="ContextMenu" Value="{StaticResource AllProjectilesDataGrid_rowContextMenu}" />
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Name="TabItem_Charts" Header="Compare by Single Property" MinWidth="175" MinHeight="26">
+                    <Grid Margin="10">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Grid Grid.Column="0" Margin="5">
+                        <!-- Chart Selection -->
+                        <Grid Grid.Column="0" Margin="0, 0, 10, 0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Column="0" Content="Select Chart Type:"/>
-                            <ListView Grid.Column="1" Margin="0, 5, 0, 0"
-                                      MinWidth="100" 
-                                      ItemsSource="{Binding ChartTypes}" SelectedItem="{Binding Path=SelectedChartType, Mode=TwoWay}"/>
+                            <Label Grid.Row="0" Content="Select Property:"/>
 
-                            <Button Grid.Row="2" Margin="0, 5, 0, 0"
+                            <ListView Grid.Row="1" Margin="0, 5, 0, 0"
+                                      ItemsSource="{Binding ChartTypes}" 
+                                      SelectedItem="{Binding Path=SelectedChartType, Mode=TwoWay}"
+                                      ScrollViewer.CanContentScroll="True"/>
+
+                            <Button Grid.Row="2" Padding="5" Margin="0, 10, 0, 0"
                                     Content="Refresh Chart" Click="Button_Click_RefreshChart"/>
                         </Grid>
 
-                        <Grid Grid.Column="1">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
+                        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" ResizeDirection="Columns"/>
 
-                            <Label Grid.Row="0" Content="{Binding SelectedChartType}" FontSize="15"/>
+                        <!-- Charts -->
 
-                            <StackPanel Grid.Row="1" Margin="0, 5, 0, 0" 
-                                        Orientation="Horizontal">
-                                <Label Content="Amount:"/>
-                                <Label Content="{Binding ChartItemsAmount}" Margin="5, 0, 0, 0"/>
-                            </StackPanel>
-
-                            <ScrollViewer Grid.Row="2" Margin="0, 20, 0, 0" 
-                                          HorizontalScrollBarVisibility="Disabled">
-                                <Grid Name="ChartGrid">
-                                    <Grid.ColumnDefinitions>
-                                        <!-- Name -->
-                                        <ColumnDefinition MinWidth="200"/>
-
-                                        <!-- Chart Length - 100 columns -->
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-
-                                        <!-- Value + Percentage -->
-                                        <ColumnDefinition MinWidth="100"/>
-                                    </Grid.ColumnDefinitions>
-                                </Grid>
-                            </ScrollViewer>
-                        </Grid>
+                        <uc:BarChart Grid.Column="2" Margin="10, 0, 0, 0" ItemsSource="{Binding ChartItems}"/>
                         
-
-
-
+                        
                     </Grid>
+                </TabItem>
+
+                <TabItem Name="TabItem_CompareUnits" Header="Specific Units Comparisons" MinWidth="175" MinHeight="26">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <Button Content="Reset Compared Units" Click="Button_Click_ResetComparedUnits"/>
+                        </StackPanel>
+                        
+                        <uc:UnitCompare Grid.Row="1" ItemsSource="{Binding ComparedUnits}" Margin="0, 10, 0, 0"/>
+                    </Grid>
+                    
+                    
                 </TabItem>
             </TabControl>
             

@@ -8,19 +8,35 @@ namespace Balancer.Model
 {
     public class ParseResult
     {
-        public List<GameObjectFile> GameObjectFiles { get; set; }
-        public List<Unit> Units;
+        public List<ProjectileFile> ProjectileFiles { get; set; }
+        public List<Projectile> Projectiles { get; set; }
+        public Dictionary<string, Projectile> ProjectilesMap { get; set; }
 
-        public ParseResult(List<GameObjectFile> gameObjectFiles, List<Unit> units)
+        public List<HardpointFile> HardpointFiles { get; set; }
+        public List<Hardpoint> Hardpoints { get; set; }
+        public Dictionary<string, Hardpoint> HardpointsMap { get; set; }
+
+        public List<UnitFile> UnitFiles { get; set; }
+        public List<Unit> Units { get; set; }
+        public Dictionary<string, Unit> UnitsMap { get; set; }
+
+
+
+        public ParseResult(List<ProjectileFile> projectileFiles, List<Projectile> projectiles, Dictionary<string, Projectile> projectilesMap,
+            List<HardpointFile> hardpointFiles, List<Hardpoint> hardpoints, Dictionary<string, Hardpoint> hardpointsMap,
+            List<UnitFile> unitFiles, List<Unit> units, Dictionary<string, Unit> unitsMap)
         {
-            GameObjectFiles = gameObjectFiles;
+            ProjectileFiles = projectileFiles;
+            Projectiles = projectiles;
+            ProjectilesMap = projectilesMap;
+
+            HardpointFiles = hardpointFiles;
+            Hardpoints = hardpoints;
+            HardpointsMap = hardpointsMap;
+
+            UnitFiles = unitFiles;
             Units = units;
-        }
-
-        public ParseResult()
-        {
-            GameObjectFiles = new List<GameObjectFile>();
-            Units = new List<Unit>();
+            UnitsMap = unitsMap;
         }
     }
 }

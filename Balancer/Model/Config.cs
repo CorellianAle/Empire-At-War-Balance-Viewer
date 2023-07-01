@@ -11,27 +11,91 @@ namespace Balancer.Model
 {
     public class Config
     {
-        public List<string> LastSelectedFiles { get; set; }
+        #region singleton
+
+        public static Config instance;
+
+        public static Config getInstance()
+        {
+            if (instance == null)
+            {
+                instance = new Config();
+            }
+
+            return instance;
+        }
+
+        #endregion
+
+
+
+
+
+        public List<string> LastSelectedProjectileFiles { get; set; }
+        public List<string> LastSelectedHardpointFiles { get; set; }
+        public List<string> LastSelectedUnitFiles { get; set; }
+        
+        
+
         public bool ShowFiles { get; set; }
+
+        public bool FilterDeathClones { get; set; }
 
         public string EditorOne { get; set; }
         public string EditorTwo { get; set; }
 
         public string GameRootFolder { get; set; }
 
-        public static void Save(Config config, string filePath = ".eaw-balancer.json")
+
+
+
+        public Config()
         {
-            string jsonString = JsonSerializer.Serialize(config);
-            File.WriteAllText(filePath, jsonString);
-            //File.SetAttributes(filePath, FileAttributes.Hidden);
+            ShowFiles = true;
+            FilterDeathClones = true;
+            EditorOne = "notepad.exe";
+            EditorTwo = "notepad.exe";
         }
 
-        public static Config Load(string filePath = ".eaw-balancer.json")
+        public Config(Config conig)
+        {
+            LastSelectedProjectileFiles = conig.LastSelectedProjectileFiles;
+            LastSelectedHardpointFiles = conig.LastSelectedHardpointFiles;
+            LastSelectedUnitFiles = conig.LastSelectedUnitFiles;
+
+            ShowFiles = conig.ShowFiles;
+
+            FilterDeathClones = conig.FilterDeathClones;
+
+            EditorOne = conig.EditorOne;
+            EditorTwo = conig.EditorTwo;
+
+            GameRootFolder = conig.GameRootFolder;
+        }
+        
+
+
+
+        public static void Initialize()
+        {
+            Initialize(new Config());
+        }
+
+        public static void Initialize(Config config)
+        {
+            instance = config;
+        }
+
+        public static void Save(string filePath = ".eaw-balancer.json")
+        {
+            string jsonString = JsonSerializer.Serialize(instance);
+            File.WriteAllText(filePath, jsonString);
+        }
+
+        public static void Load(string filePath = ".eaw-balancer.json")
         {
             string jsonString = File.ReadAllText(filePath);
-            Config config = JsonSerializer.Deserialize<Config>(jsonString)!;
-
-            return config;
+            instance = JsonSerializer.Deserialize<Config>(jsonString)!;
         }
     }
 }

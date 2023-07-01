@@ -12,14 +12,408 @@ namespace Balancer
 {
     internal class Parser
     {
+        #region projectiles
+
         /// <summary>
         /// Parses single XML file.
+        /// 
+        /// Locates Projectile tags and, if successful, parses individual parameters.
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        private static GameObjectFile parseGameObjectFile(string filePath)
+        private static ProjectileFile parseProjectileFile(string filePath)
         {
-            var gameObjectFile = new GameObjectFile();
+            var projectileFile = new ProjectileFile();
+
+            projectileFile.Path = filePath;
+            projectileFile.FileName = Path.GetFileName(filePath);
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(filePath);
+
+            XmlElement? rootNode = doc.DocumentElement;
+
+            //handle empty
+            if (rootNode == null)
+            {
+                return projectileFile;
+            }
+
+            //parse root
+            projectileFile.RootElement = rootNode.Name;
+
+            //handle units
+            int excludedProjectilesCount = 0; //non-space-units and deathclones
+
+            foreach (XmlNode node in rootNode)
+            {
+                if (node.NodeType != XmlNodeType.Element)
+                {
+                    continue;
+                }
+
+                var element = (XmlElement)node;
+
+                if (!(element.Name == "Projectile"))
+                {
+                    ++excludedProjectilesCount;
+                    continue;
+                }
+
+                int tempInt;
+                double tempDouble;
+                bool tempBool;
+
+                //handle unit name
+                var name = element.GetAttribute("Name");
+
+                //create unit
+                var projectile = new Projectile(name);
+
+                //handle unit parameters
+                foreach (XmlNode childNode in element)
+                {
+                    if (childNode.NodeType != XmlNodeType.Element)
+                    {
+                        continue;
+                    }
+
+                    var childElement = (XmlElement)childNode;
+
+
+                    //get specific parameters
+                    if (childElement.Name == "Variant_Of_Existing_Type")
+                    {
+                        projectile.Variant_Of_Existing_Type = childElement.InnerText;
+                    }
+
+                    if (childElement.Name == "Damage_Type")
+                    {
+                        projectile.Damage_Type = childElement.InnerText;
+                    }
+
+                    if (childElement.Name == "Projectile_Max_Flight_Distance")
+                    {
+                        if (double.TryParse(childElement.InnerText, out tempDouble))
+                        {
+                            projectile.Projectile_Max_Flight_Distance = tempDouble;
+                        }
+                    }
+
+                    if (childElement.Name == "Projectile_Damage")
+                    {
+                        if (double.TryParse(childElement.InnerText, out tempDouble))
+                        {
+                            projectile.Projectile_Damage = tempDouble;
+                        }
+                    }
+
+                    if (childElement.Name == "Projectile_Does_Shield_Damage")
+                    {
+                        //if (bool.TryParse(childElement.InnerText, out tempBool))
+                        //{
+                        //    projectile.Projectile_Does_Shield_Damage = tempBool;
+                        //}
+
+                        projectile.Projectile_Does_Shield_Damage = parseYesNo(childElement.InnerText);
+                    }
+
+                    if (childElement.Name == "Projectile_Does_Energy_Damage")
+                    {
+                        //if (bool.TryParse(childElement.InnerText, out tempBool))
+                        //{
+                        //    projectile.Projectile_Does_Energy_Damage = tempBool;
+                        //}
+
+                        projectile.Projectile_Does_Energy_Damage = parseYesNo(childElement.InnerText);
+                    }
+
+                    if (childElement.Name == "Projectile_Does_Hitpoint_Damage")
+                    {
+                        //if (bool.TryParse(childElement.InnerText, out tempBool))
+                        //{
+                        //    projectile.Projectile_Does_Hitpoint_Damage = tempBool;
+                        //}
+
+                        projectile.Projectile_Does_Hitpoint_Damage = parseYesNo(childElement.InnerText);
+                    }
+
+                    if (childElement.Name == "Projectile_Blast_Area_Damage")
+                    {
+                        if (int.TryParse(childElement.InnerText, out tempInt))
+                        {
+                            projectile.Projectile_Blast_Area_Damage = tempInt;
+                        }
+                    }
+
+                    if (childElement.Name == "Projectile_Blast_Area_Range")
+                    {
+                        if (int.TryParse(childElement.InnerText, out tempInt))
+                        {
+                            projectile.Projectile_Blast_Area_Range = tempInt;
+                        }
+                    }
+
+                    if (childElement.Name == "AI_Combat_Power")
+                    {
+                        if (int.TryParse(childElement.InnerText, out tempInt))
+                        {
+                            projectile.AI_Combat_Power = tempInt;
+                        }
+                    }
+
+                }
+
+                projectile.ProjectileFile = projectileFile;
+                projectileFile.Projectiles.Add(projectile);
+            }
+
+            projectileFile.ProjectilesCount = projectileFile.Projectiles.Count;
+            projectileFile.ExcludedProjectilesCount = excludedProjectilesCount;
+
+            return projectileFile;
+        }
+
+        /// <summary>
+        /// Parses multiple XML files.
+        /// </summary>
+        /// <param name="filePaths">List of file paths.</param>
+        /// <returns></returns>
+        private static List<ProjectileFile> parseProjectileFiles(List<string> filePaths)
+        {
+            var projectileFiles = new List<ProjectileFile>();
+
+            foreach (var filePath in filePaths)
+            {
+                var projectilefile = parseProjectileFile(filePath);
+
+                projectileFiles.Add(projectilefile);
+            }
+
+            return projectileFiles;
+        }
+
+        #endregion
+
+
+
+
+
+        #region hardpoints files
+
+        /// <summary>
+        /// Parses single XML file.
+        /// 
+        /// Locates Projectile tags and, if successful, parses individual parameters.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        private static HardpointFile parseHardpointFile(string filePath)
+        {
+            var hardpointFile = new HardpointFile();
+
+            hardpointFile.Path = filePath;
+            hardpointFile.FileName = Path.GetFileName(filePath);
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(filePath);
+
+            XmlElement? rootNode = doc.DocumentElement;
+
+            //handle empty
+            if (rootNode == null)
+            {
+                return hardpointFile;
+            }
+
+            //parse root
+            hardpointFile.RootElement = rootNode.Name;
+
+            //handle units
+            int excludedProjectilesCount = 0; //non-space-units and deathclones
+
+            foreach (XmlNode node in rootNode)
+            {
+                if (node.NodeType != XmlNodeType.Element)
+                {
+                    continue;
+                }
+
+                var element = (XmlElement)node;
+
+                if (!(element.Name == "HardPoint"))
+                {
+                    ++excludedProjectilesCount;
+                    continue;
+                }
+
+                int tempInt;
+                double tempDouble;
+                bool tempBool;
+
+                //handle unit name
+                var name = element.GetAttribute("Name");
+
+                //create unit
+                var hardpoint = new Hardpoint(name);
+
+                //handle unit parameters
+                foreach (XmlNode childNode in element)
+                {
+                    if (childNode.NodeType != XmlNodeType.Element)
+                    {
+                        continue;
+                    }
+
+                    var childElement = (XmlElement)childNode;
+
+
+                    //get specific parameters
+                    if (childElement.Name == "Type")
+                    {
+                        if (!string.IsNullOrEmpty(childElement.InnerText))
+                        {
+                            hardpoint.Type = childElement.InnerText.Trim();
+                        }
+                    }
+
+                    if (childElement.Name == "Is_Targetable")
+                    {
+                        //if (bool.TryParse(childElement.InnerText, out tempBool))
+                        //{
+                        //    hardpoint.Is_Targetable = tempBool;
+                        //}
+
+                        hardpoint.Is_Targetable = parseYesNo(childElement.InnerText);
+                    }
+
+                    if (childElement.Name == "Is_Destroyable")
+                    {
+                        //if (bool.TryParse(childElement.InnerText, out tempBool))
+                        //{
+                        //    hardpoint.Is_Destroyable = tempBool;
+                        //}
+
+                        hardpoint.Is_Destroyable = parseYesNo(childElement.InnerText);
+                    }
+
+                    if (childElement.Name == "Health")
+                    {
+                        if (double.TryParse(childElement.InnerText, out tempDouble))
+                        {
+                            hardpoint.Health = tempDouble;
+                        }
+                    }
+
+                    if (childElement.Name == "Damage_Type")
+                    {
+                        if (!string.IsNullOrEmpty(childElement.InnerText))
+                        {
+                            hardpoint.Damage_Type = childElement.InnerText.Trim();
+                        }
+                    }
+
+
+                    if (childElement.Name == "Fire_Projectile_Type")
+                    {
+                        if (!string.IsNullOrEmpty(childElement.InnerText))
+                        {
+                            hardpoint.ProjectileName = childElement.InnerText.Trim();
+                        }
+                    }
+
+
+                    if (childElement.Name == "Fire_Min_Recharge_Seconds")
+                    {
+                        if (double.TryParse(childElement.InnerText, out tempDouble))
+                        {
+                            hardpoint.Fire_Min_Recharge_Seconds = tempDouble;
+                        }
+                    }
+
+                    if (childElement.Name == "Fire_Max_Recharge_Seconds")
+                    {
+                        if (double.TryParse(childElement.InnerText, out tempDouble))
+                        {
+                            hardpoint.Fire_Max_Recharge_Seconds = tempDouble;
+                        }
+                    }
+
+                    if (childElement.Name == "Fire_Pulse_Count")
+                    {
+                        if (double.TryParse(childElement.InnerText, out tempDouble))
+                        {
+                            hardpoint.Fire_Pulse_Count = tempDouble;
+                        }
+                    }
+
+                    if (childElement.Name == "Fire_Pulse_Delay_Seconds")
+                    {
+                        if (double.TryParse(childElement.InnerText, out tempDouble))
+                        {
+                            hardpoint.Fire_Pulse_Delay_Seconds = tempDouble;
+                        }
+                    }
+
+                    if (childElement.Name == "Fire_Range_Distance")
+                    {
+                        if (double.TryParse(childElement.InnerText, out tempDouble))
+                        {
+                            hardpoint.Fire_Range_Distance = tempDouble;
+                        }
+                    }
+
+                }
+
+                hardpoint.HardpointFile = hardpointFile;
+                hardpointFile.Hardpoints.Add(hardpoint);
+            }
+
+            hardpointFile.HardpointsCount = hardpointFile.Hardpoints.Count;
+            hardpointFile.ExcludedHardpointsCount = excludedProjectilesCount;
+
+            return hardpointFile;
+        }
+
+
+        /// <summary>
+        /// Parses multiple XML files.
+        /// </summary>
+        /// <param name="filePaths">List of file paths.</param>
+        /// <returns></returns>
+        private static List<HardpointFile> parseHardpointFiles(List<string> filePaths)
+        {
+            var hardpointfiles = new List<HardpointFile>();
+
+            foreach (var filePath in filePaths)
+            {
+                var hardpointFile = parseHardpointFile(filePath);
+
+                hardpointfiles.Add(hardpointFile);
+            }
+
+            return hardpointfiles;
+        }
+
+        #endregion
+
+
+
+
+
+        #region units files
+
+        /// <summary>
+        /// Parses single XML file.
+        /// 
+        /// Locates SpaceUnit or UniqueUnit tags and, if successful, parses individual parameters.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="isFilterDeathClone">Parser would ignore death clones</param>
+        /// <returns></returns>
+        private static UnitFile parseGameObjectFile(string filePath, bool isFilterDeathClone)
+        {
+            var gameObjectFile = new UnitFile();
 
             gameObjectFile.Path = filePath;
             gameObjectFile.FileName = Path.GetFileName(filePath);
@@ -64,11 +458,14 @@ namespace Balancer
                 var name = element.GetAttribute("Name");
 
                 //filter death clone by name
-                if (name != null)
+                if (isFilterDeathClone)
                 {
-                    if (name.ToLower().Contains("death_clone"))
+                    if (name != null)
                     {
-                        isDeathClone = true;
+                        if (name.ToLower().Contains("death_clone"))
+                        {
+                            isDeathClone = true;
+                        }
                     }
                 }
 
@@ -85,13 +482,16 @@ namespace Balancer
                     }
 
                     var childElement = (XmlElement) childNode;
-                    
+
                     //filter death clone by xxxModel tag
-                    if (childElement.Name == "xxxSpace_Model_Name")
+                    if (isFilterDeathClone)
                     {
-                        ++excludedUnitsCount;
-                        isDeathClone = true;
-                        break;
+                        if (childElement.Name == "xxxSpace_Model_Name")
+                        {
+                            ++excludedUnitsCount;
+                            isDeathClone = true;
+                            break;
+                        }
                     }
 
 
@@ -228,12 +628,28 @@ namespace Balancer
                             unit.Tactical_Build_Time_Seconds = tempInt;
                         }
                     }
+
+                    if (childElement.Name == "HardPoints")
+                    {
+                        if (!string.IsNullOrWhiteSpace(childElement.InnerText))
+                        {
+                            var strs = childElement.InnerText.Split(',').ToList();
+                            var hardpointNames = new List<string>();
+
+                            foreach (var str in strs)
+                            {
+                                hardpointNames.Add(str.Trim());
+                            }
+
+                            unit.HardpointNames = hardpointNames;
+                        }
+                    }
                 }
 
                 //add to units and link to file (two-way)
                 if (!isDeathClone)
                 {
-                    unit.GameObjectFile = gameObjectFile;
+                    unit.UnitFile = gameObjectFile;
                     gameObjectFile.Units.Add(unit);
                 }
             }
@@ -249,13 +665,13 @@ namespace Balancer
         /// </summary>
         /// <param name="filePaths">List of file paths.</param>
         /// <returns></returns>
-        private static List<GameObjectFile> parseGameObjectFiles(List<string> filePaths)
+        private static List<UnitFile> parseGameObjectFiles(List<string> filePaths, bool isFilterDeathClones)
         {
-            var gameObjectFiles = new List<GameObjectFile>();
+            var gameObjectFiles = new List<UnitFile>();
 
             foreach (var filePath in filePaths)
             {
-                var gameObjectfile = parseGameObjectFile(filePath);
+                var gameObjectfile = parseGameObjectFile(filePath, isFilterDeathClones);
 
                 gameObjectFiles.Add(gameObjectfile);
             }
@@ -263,43 +679,204 @@ namespace Balancer
             return gameObjectFiles;
         }
 
+        #endregion
+
+
+
+        
+
         /// <summary>
         /// Parses multiple files. Groups units from all files to single collection.
         /// </summary>
-        /// <param name="filePaths"></param>
+        /// <param name="unitFilesPath"></param>
         /// <returns></returns>
-        public static ParseResult parseXmlFiles(List<string> filePaths)
+        public static ParseResult parseXmlFiles(List<string> projectilesFilesPaths, List<string> hardpointsFilesPaths, List<string> unitsFilesPaths, bool isFilterDeathClones)
         {
-            //parse files
-            var gameObjectFiles = parseGameObjectFiles(filePaths);
+            //parse projectiles
+            List<ProjectileFile> projectileFiles;
+
+            if (projectilesFilesPaths != null)
+            {
+                projectileFiles = parseProjectileFiles(projectilesFilesPaths);             
+            }
+            else
+            {
+                projectileFiles = new List<ProjectileFile>();
+            }
+
+            //parse hardpoints
+            List<HardpointFile> hardpointFiles;
+
+            if (hardpointsFilesPaths != null)
+            {
+                hardpointFiles = parseHardpointFiles(hardpointsFilesPaths);
+            }
+            else
+            {
+                hardpointFiles= new List<HardpointFile>();
+            }
+
+            //parse unit files
+            List<UnitFile> unitFiles;
+
+            if (unitsFilesPaths != null)
+            {
+                unitFiles = parseGameObjectFiles(unitsFilesPaths, isFilterDeathClones);
+            }
+            else
+            {
+                unitFiles = new List<UnitFile>();
+            }
+            
+
+
+
+
+            //group particles
+            var projectilesMap = new Dictionary<string, Projectile>();
+            var projectiles = new List<Projectile>();
+
+            foreach (var projectileFile in projectileFiles)
+            {
+                foreach (var projectile in projectileFile.Projectiles)
+                {
+                    if (!projectilesMap.ContainsKey(projectile.Name))
+                    {
+                        projectilesMap.Add(projectile.Name, projectile); 
+                    }
+
+                    projectiles.Add(projectile);
+                }
+            }
+
+            //group hardpoints
+            var hardpointsMap = new Dictionary<string, Hardpoint>();
+            var hardpoints = new List<Hardpoint>();
+
+            foreach (var hardpointFile in hardpointFiles)
+            {
+                foreach (var hardpoint in hardpointFile.Hardpoints)
+                {
+                    if (!hardpointsMap.ContainsKey(hardpoint.Name))
+                    {
+                        hardpointsMap.Add(hardpoint.Name, hardpoint);
+                    }
+
+                    hardpoints.Add(hardpoint);
+                }
+            }
 
             //group units
+            var unitsMap = new Dictionary<string, Unit>();
             var units = new List<Unit>();
 
-            foreach (var gameObjectFile in gameObjectFiles)
+            foreach (var unitFile in unitFiles)
             {
-                foreach (var unit in gameObjectFile.Units)
+                foreach (var unit in unitFile.Units)
                 {
+                    if (!unitsMap.ContainsKey(unit.Name))
+                    {
+                        unitsMap.Add(unit.Name, unit);
+                    }    
+
                     units.Add(unit);
+                    
                 }
             }
 
             //handle "Variant_Of_Existing_Type"
+            foreach (var projectile in projectiles)
+            {
+                if (projectile.Variant_Of_Existing_Type != null)
+                {
+                    var parent = projectilesMap.GetValueOrDefault(projectile.Variant_Of_Existing_Type);
+
+
+                    if (parent != null)
+                    {
+                        FillChildValuesByParent(parent, projectile);
+                    }
+                }
+            }
+
             foreach (var unit in units)
             {
                 if (unit.Variant_Of_Existing_Type != null)
                 {
-                    var parent = units.First(a => a.Name == unit.Variant_Of_Existing_Type);
+                    var parent = unitsMap.GetValueOrDefault(unit.Variant_Of_Existing_Type);
 
-                    FillChildValuesByParent(parent, unit);
+                    if (parent != null)
+                    {
+                        FillChildValuesByParent(parent, unit);
+                    }
                 }
             }
 
-            return new ParseResult(gameObjectFiles, units);
+            //projectiles to hardpoints
+            if (projectiles.Count > 0 && hardpoints.Count > 0)
+            {
+                foreach (var hardpoint in hardpoints)
+                {
+                    if (!string.IsNullOrWhiteSpace(hardpoint.ProjectileName))
+                    {
+                        var projectile = projectilesMap.GetValueOrDefault(hardpoint.ProjectileName);
+
+                        if (projectile != null)
+                        {
+                            hardpoint.Fire_Projectile_Type = projectile;
+                            projectile.Hardpoints.Add(hardpoint);
+                        }
+                    }
+                }
+            }
+
+            //hardpoints to units
+            if (hardpoints.Count > 0 && units.Count > 0)
+            {
+                foreach (var unit in units)
+                {
+                    if (unit.HardpointNames != null)
+                    {
+                        foreach (var hardpointName in unit.HardpointNames)
+                        {
+                            var hardpoint = hardpointsMap.GetValueOrDefault(hardpointName);
+
+                            if (hardpoint != null)
+                            {
+                                unit.Hardpoints.Add(hardpoint);
+                                hardpoint.Units.Add(unit);
+                            }
+                        }
+                    }
+                }
+            }
+
+            //projectiles to units
+            if (projectiles.Count > 0 && units.Count > 0)
+            {
+                foreach (var unit in units)
+                {
+                    if (unit.ProjectileTypesName != null)
+                    {
+                        var projectile = projectilesMap.GetValueOrDefault(unit.ProjectileTypesName);
+
+                        if (projectile != null)
+                        {
+                            unit.Projectile_Types = projectile;
+                            projectile.Units.Add(unit);
+                        }
+                    }
+                }
+            }
+
+            
+
+
+            return new ParseResult(projectileFiles, projectiles, projectilesMap, hardpointFiles, hardpoints, hardpointsMap, unitFiles, units, unitsMap);
         }
 
         /// <summary>
-        /// Fills missing values of a child by it's parent's corresponding values
+        /// Fills missing values of a child by it's parent's corresponding values.
         /// </summary>
         /// <param name="parent">Parent unit</param>
         /// <param name="child">Child unit (Variant_Of_Existing_Type)</param>
@@ -403,6 +980,197 @@ namespace Balancer
                 child.Tactical_Build_Time_Seconds = parent.Tactical_Build_Time_Seconds;
                 child.Tactical_Build_Time_Seconds_fromParent = true;
             }
+
+           
+
+
+
+            if (child.ArmorTypeName == null)
+            {
+                child.ArmorTypeName = parent.ArmorTypeName;
+                child.Armor_Type_fromParent = true;
+            }
+
+            if (child.Armor_Type == null)
+            {
+                child.Armor_Type = parent.Armor_Type;
+                child.Armor_Type_fromParent = true;
+            }
+
+
+
+            if (child.ShieldArmorTypeName == null)
+            {
+                child.ShieldArmorTypeName = parent.ShieldArmorTypeName;
+                child.Shield_Armor_Type_fromParent = true;
+            }
+
+            if (child.Shield_Armor_Type == null)
+            {
+                child.Shield_Armor_Type = parent.Shield_Armor_Type;
+                child.Shield_Armor_Type_fromParent = true;
+            }
+
+
+
+            if (child.DamageTypeName == null)
+            {
+                child.DamageTypeName = parent.DamageTypeName;
+                child.Damage_fromParent = true;
+            }
+
+            if (child.Damage_Type == null)
+            {
+                child.Damage_Type = parent.Damage_Type;
+                child.Damage_fromParent = true;
+            }
+
+
+
+            if (child.ProjectileTypesName == null)
+            {
+                child.ProjectileTypesName = parent.ProjectileTypesName;
+                child.Projectile_Types_fromParent = true;
+            }
+
+            if (child.Projectile_Types == null)
+            {
+                child.Projectile_Types = parent.Projectile_Types;
+                child.Projectile_Types_fromParent = true;
+            }
+
+
+
+            if (child.Projectile_Fire_Pulse_Count == null)
+            {
+                child.Projectile_Fire_Pulse_Count = parent.Projectile_Fire_Pulse_Count;
+                child.Projectile_Fire_Pulse_Count_fromParent = true;
+            }
+
+            if (child.Projectile_Fire_Pulse_Count == null)
+            {
+                child.Projectile_Fire_Pulse_Count = parent.Projectile_Fire_Pulse_Count;
+                child.Projectile_Fire_Pulse_Count_fromParent = true;
+            }
+
+            if (child.Projectile_Fire_Pulse_Delay_Seconds == null)
+            {
+                child.Projectile_Fire_Pulse_Delay_Seconds = parent.Projectile_Fire_Pulse_Delay_Seconds;
+                child.Projectile_Fire_Pulse_Delay_Seconds_fromParent = true;
+            }
+
+            if (child.Projectile_Fire_Recharge_Seconds == null)
+            {
+                child.Projectile_Fire_Recharge_Seconds = parent.Projectile_Fire_Recharge_Seconds;
+                child.Projectile_Fire_Recharge_Seconds_fromParent = true;
+            }
+
+
+
+            if (child.HardpointNames == null)
+            {
+                child.HardpointNames = parent.HardpointNames;
+                child.Hardpoints_fromParent = true;
+            }
+
+            if (child.Hardpoints == null)
+            {
+                child.Hardpoints = parent.Hardpoints;
+                child.Hardpoints_fromParent = true;
+            }
+        }
+
+        /// <summary>
+        /// Fills missing values of a child by it's parent's corresponding values.
+        /// </summary>
+        /// <param name="parent">Parent unit</param>
+        /// <param name="child">Child unit (Variant_Of_Existing_Type)</param>
+        private static void FillChildValuesByParent(Projectile parent, Projectile child)
+        {
+            child.Parent = parent;
+
+            //update fields
+            if (child.Damage_Type == null)
+            {
+                child.Damage_Type = parent.Damage_Type;
+                child.Damage_Type_fromParent = true;
+            }
+
+            if (child.Projectile_Max_Flight_Distance == null)
+            {
+                child.Projectile_Max_Flight_Distance = parent.Projectile_Max_Flight_Distance;
+                child.Projectile_Max_Flight_Distance_fromParent = true;
+            }
+
+            if (child.Projectile_Max_Flight_Distance == null)
+            {
+                child.Projectile_Max_Flight_Distance = parent.Projectile_Max_Flight_Distance;
+                child.Projectile_Max_Flight_Distance_fromParent = true;
+            }
+
+            if (child.Projectile_Damage == null)
+            {
+                child.Projectile_Damage = parent.Projectile_Damage;
+                child.Projectile_Damage_fromParent = true;
+            }
+
+            if (child.Projectile_Does_Shield_Damage == null)
+            {
+                child.Projectile_Does_Shield_Damage = parent.Projectile_Does_Shield_Damage;
+                child.Projectile_Does_Shield_Damage_fromParent = true;
+            }
+
+            if (child.Projectile_Does_Energy_Damage == null)
+            {
+                child.Projectile_Does_Energy_Damage = parent.Projectile_Does_Energy_Damage;
+                child.Projectile_Does_Energy_Damage_fromParent = true;
+            }
+
+            if (child.Projectile_Does_Hitpoint_Damage == null)
+            {
+                child.Projectile_Does_Hitpoint_Damage = parent.Projectile_Does_Hitpoint_Damage;
+                child.Projectile_Does_Hitpoint_Damage_fromParent = true;
+            }
+
+            if (child.Projectile_Blast_Area_Damage == null)
+            {
+                child.Projectile_Blast_Area_Damage = parent.Projectile_Blast_Area_Damage;
+                child.Projectile_Blast_Area_Damage_fromParent = true;
+            }
+
+            if (child.Projectile_Blast_Area_Range == null)
+            {
+                child.Projectile_Blast_Area_Range = parent.Projectile_Blast_Area_Range;
+                child.Projectile_Blast_Area_Range_fromParent = true;
+            }
+
+            if (child.AI_Combat_Power == null)
+            {
+                child.AI_Combat_Power = parent.AI_Combat_Power;
+                child.AI_Combat_Power_fromParent = true;
+            }
+        }
+
+        private static bool? parseYesNo(string str)
+        {
+            if (string.IsNullOrWhiteSpace(str))
+            {
+                return null;
+            }
+
+            var tr = str.Trim().ToLower();
+
+            if (tr == "yes")
+            {
+                return true;
+            }
+
+            if (tr == "no")
+            {
+                return false;
+            }
+
+            throw new ArgumentException("Provided value is not \"yes\", \"no\" or null");
         }
     }
 }

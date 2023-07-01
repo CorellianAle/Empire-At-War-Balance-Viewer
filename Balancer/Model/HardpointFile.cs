@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace Balancer.Model
 {
-    public class GameObjectFile : BaseNotifyProp
+    public class HardpointFile
     {
         public string Path { get; set; }
         public string FileName { get; set; }
-        public int UnitsCount { get; set; }
-        public int ExcludedUnitsCount { get; set; }
-        public List<Unit> Units { get; set; }
+        public int HardpointsCount { get; set; }
+        public int ExcludedHardpointsCount { get; set; }
+        public List<Hardpoint> Hardpoints { get; set; }
         public string RootElement { get; set; }
 
-        public GameObjectFile()
+        public HardpointFile()
         {
-            Units = new List<Unit>();
+            Hardpoints = new List<Hardpoint>();
         }
     }
 }

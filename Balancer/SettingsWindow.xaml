@@ -1,0 +1,73 @@
+﻿<Window x:Class="Balancer.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Balancer"
+        mc:Ignorable="d"
+        Title="Settings" Height="450" Width="800">
+
+    <StackPanel Orientation="Vertical" Margin="5">
+        <GroupBox Header="Editors">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="Editor One (Path to Executable)" VerticalAlignment="Center" Margin="2"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Margin="2" VerticalAlignment="Center" Text="{Binding EditorOnePath}"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="..." VerticalAlignment="Center" Margin="2" MinWidth="30" Click="Button_Click_SelectEditorOne"/>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="Editor Two (Path to Executable)" VerticalAlignment="Center" Margin="2"/>
+                <TextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="2" Text="{Binding EditorTwoPath}"/>
+                <Button Grid.Row="1" Grid.Column="2" Content="..." VerticalAlignment="Center" Margin="2" MinWidth="30" Click="Button_Click_SelectEditorTwo"/>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Empire at War Settings">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="Root Folder (Data/)" VerticalAlignment="Center" Margin="2"/>
+                <TextBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="2" Text="{Binding GameRootFolder}"/>
+                <Button Grid.Row="0" Grid.Column="2" Content="..." VerticalAlignment="Center" Margin="2"  MinWidth="30" Click="Button_Click_SelectGameRootFolder"/>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Parser">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="3" Grid.Column="0" Content="Ignore Death Clones" VerticalAlignment="Center" Margin="2"/>
+                <CheckBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="2" IsChecked="{Binding FilterDeathClones}"/>
+            </Grid>
+        </GroupBox>
+
+        <Button Content="Apply" Margin="1, 5, 1, 0" Click="Button_Click_Apply"/>
+    </StackPanel>
+</Window>
