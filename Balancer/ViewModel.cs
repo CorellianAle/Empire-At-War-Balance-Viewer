@@ -1194,7 +1194,7 @@ namespace Balancer
         /// </summary>
         public void OpenSelectedUnitFileEditorOne()
         {
-            if (selectedHardpoint == null)
+            if (selectedUnit == null)
             {
                 return;
             }
@@ -1207,7 +1207,7 @@ namespace Balancer
         /// </summary>
         public void OpenSelectedUnitFileEditorTwo()
         {
-            if (selectedHardpoint == null)
+            if (selectedUnit == null)
             {
                 return;
             }
@@ -1232,17 +1232,22 @@ namespace Balancer
 
 
 
+        
+        
         /// <summary>
         /// Opens file in editor one.
         /// </summary>
         public void OpenFileEditorOne(string filePath)
         {
-            if (selectedHardpoint == null)
+
+            if (Config.getInstance() == null)
             {
                 return;
             }
 
-            if (Config.getInstance() == null || string.IsNullOrWhiteSpace(Config.getInstance().EditorOne))
+            var editorPath = Config.getInstance().EditorOne;
+
+            if (string.IsNullOrWhiteSpace(editorPath))
             {
                 return;
             }
@@ -1254,7 +1259,7 @@ namespace Balancer
 
             try
             {
-                Process.Start(Config.getInstance().EditorOne, filePath);
+                Process.Start(editorPath, filePath);
             }
             catch (Exception ex)
             {

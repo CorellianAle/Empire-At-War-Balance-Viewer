@@ -63,7 +63,8 @@
 
             <!-- XML Files -->
             <TabControl Grid.Row="0" Margin="0, 0, 0, 10">
-                <TabItem Header="Units XML Files" MinWidth="175" MinHeight="26">
+
+                <TabItem Header="Projectiles XML Files" MinWidth="175" MinHeight="26">
                     <Grid Margin="10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -71,19 +72,19 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal">
-                            <Button Content="Add File" Click="Button_Click_AddUnitXmlFile" MinWidth="150"/>
-                            <Button Content="Delete File" Click="Button_Click_RemoveUnitXmlFile" Margin="10, 0, 0, 0" MinWidth="150"/>
+                            <Button Content="Add File" Click="Button_Click_AddProjectileXmlFile" MinWidth="150"/>
+                            <Button Content="Delete File" Click="Button_Click_RemoveProjectileXmlFile" Margin="10, 0, 0, 0" MinWidth="150"/>
                         </StackPanel>
 
-                        <DataGrid Grid.Row="1" Name="UnitsXmlFiles"
-                                  ItemsSource="{Binding UnitFiles}" 
+                        <DataGrid Grid.Row="1" Name="ProjectilesXmlFiles" 
+                                  ItemsSource="{Binding ProjectileFiles}" 
                                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26" 
                                   Margin="0, 10, 0, 0">
 
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding FileName}"/>
-                                <DataGridTextColumn Header="Units" Binding="{Binding UnitsCount}"/>
-                                <DataGridTextColumn Header="Excluded Units" Binding="{Binding ExcludedUnitsCount}"/>
+                                <DataGridTextColumn Header="Projectiles" Binding="{Binding ProjectilesCount}"/>
+                                <DataGridTextColumn Header="Excluded Projectiles" Binding="{Binding ExcludedProjectilesCount}"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
@@ -115,7 +116,7 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Projectiles XML Files" MinWidth="175" MinHeight="26">
+                <TabItem Header="Units XML Files" MinWidth="175" MinHeight="26">
                     <Grid Margin="10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -123,25 +124,22 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Orientation="Horizontal">
-                            <Button Content="Add File" Click="Button_Click_AddProjectileXmlFile" MinWidth="150"/>
-                            <Button Content="Delete File" Click="Button_Click_RemoveProjectileXmlFile" Margin="10, 0, 0, 0" MinWidth="150"/>
+                            <Button Content="Add File" Click="Button_Click_AddUnitXmlFile" MinWidth="150"/>
+                            <Button Content="Delete File" Click="Button_Click_RemoveUnitXmlFile" Margin="10, 0, 0, 0" MinWidth="150"/>
                         </StackPanel>
 
-                        <DataGrid Grid.Row="1" Name="ProjectilesXmlFiles" 
-                                  ItemsSource="{Binding ProjectileFiles}" 
+                        <DataGrid Grid.Row="1" Name="UnitsXmlFiles"
+                                  ItemsSource="{Binding UnitFiles}" 
                                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="26" 
                                   Margin="0, 10, 0, 0">
 
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding FileName}"/>
-                                <DataGridTextColumn Header="Projectiles" Binding="{Binding ProjectilesCount}"/>
-                                <DataGridTextColumn Header="Excluded Projectiles" Binding="{Binding ExcludedProjectilesCount}"/>
+                                <DataGridTextColumn Header="Units" Binding="{Binding UnitsCount}"/>
+                                <DataGridTextColumn Header="Excluded Units" Binding="{Binding ExcludedUnitsCount}"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
-                </TabItem>
-
-                <TabItem Header="Previously Selected XML Files" MinWidth="175" MinHeight="26">
                 </TabItem>
             </TabControl>
 
