@@ -347,6 +347,9 @@ namespace Balancer
 
 
 
+        /// <summary>
+        /// ViewModel of the main window
+        /// </summary>
         public ViewModel()
         {
             InitializeChartTypes();
@@ -363,7 +366,8 @@ namespace Balancer
         /// </summary>
         private void InitializeChartTypes()
         {
-            var charts = new List<string>
+            //chart names
+            ChartTypes = new ObservableCollection<string>
             {
                 ChartAiCombatPower,
                 ChartDamage,
@@ -398,8 +402,6 @@ namespace Balancer
                 ChartTorpedoDamageOver60Sec,
                 ChartIonDamageOver60Sec
             };
-
-            ChartTypes = new ObservableCollection<string>(charts);
         }
 
         /// <summary>
